@@ -1,0 +1,49 @@
+### Home
+GET http://localhost:1205
+
+
+### Register Admin
+POST http://localhost:1205/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "123456"
+}
+
+
+### Login Admin
+POST http://localhost:1205/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "123456"
+}
+
+
+### Subscribe
+POST http://localhost:1205/api/newsletter/subscribe
+Content-Type: application/json
+
+{
+  "email": "ashish@example.com"
+}
+
+
+### Unsubscribe
+POST http://localhost:1205/api/newsletter/unsubscribe
+Content-Type: application/json
+
+{
+  "email": "ashish@example.com"
+}
+
+
+### Get Subscribers (Admin)
+GET http://localhost:1205/api/newsletter/subscribers
+
+
+### Logout Admin
+POST http://localhost:1205/api/auth/logout
