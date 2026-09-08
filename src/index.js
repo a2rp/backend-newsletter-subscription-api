@@ -1,38 +1,28 @@
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const authRoutes = require("./routes/auth.routes");
-const newsletterRoutes = require("./routes/newsletter.routes");
 
 dotenv.config();
 
-connectDB();
+const app = require("./app");
 
-const app = express();
+const validateEnvironment = () => {
+    const missing = ["MONGO_URI", "JWT_SECRET"].filter((key) => !process.env[key]);
+    if (missing.length) throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+    if (process.env.JWT_SECRET.length < 32) throw new Error("JWT_SECRET must contain at least 32 characters");
+};
 
-app.use(express.json());
-app.use(cookieParser());
+const startServer = async () => {
+    try {
+        validateEnvironment();
+        await connectDB();
+        const port = Number(process.env.PORT) || 1198;
+        app.listen(port, () => console.log(`Server running on port ${port}`));
+    } catch (error) {
+        console.error(`Server startup failed: ${error.message}`);
+        process.exitCode = 1;
+    }
+};
 
-app.use(
-    cors({
-        origin: "http://localhost:5173",
-        credentials: true,
-    }),
-);
+if (require.main === module) startServer();
 
-app.get("/", (req, res) => {
-    res.json({
-        message: "Newsletter Subscription API is running",
-    });
-});
-
-app.use("/api/auth", authRoutes);
-app.use("/api/newsletter", newsletterRoutes);
-
-const PORT = process.env.PORT || 1205;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+module.exports = { app, startServer, validateEnvironment };

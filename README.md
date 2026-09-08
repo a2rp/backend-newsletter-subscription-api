@@ -1,46 +1,32 @@
 # backend-newsletter-subscription-api
 
-Backend API for newsletter subscribe, unsubscribe, and subscriber listing using Node.js, Express, MongoDB, JWT, and HttpOnly cookies.
+Secure newsletter subscription API built with Node.js, Express, MongoDB, JWT, and HttpOnly cookies.
 
 ## Features
 
-- Subscribe to newsletter
-- Unsubscribe from newsletter
-- Admin register
-- Admin login
-- Admin logout
-- List all subscribers (admin only)
-- Protected admin routes
-- JWT authentication
-- HttpOnly cookie based auth
-- MongoDB with Mongoose
+- Public subscribe and unsubscribe endpoints
+- Admin registration, login, and logout
+- Admin-only active subscriber listing
+- Hashed admin passwords with bcrypt
+- Seven-day JWT authentication in an HttpOnly cookie
+- Configurable CORS with credentials
+- Helmet security headers and rate limiting
+- Input validation, safe errors, request size limits, and API request logs
+- MongoDB persistence through Mongoose
 
-## Tech Stack
+## Requirements
 
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT
-- bcryptjs
-- cookie-parser
+- Node.js 18 or newer
+- MongoDB running locally or a hosted MongoDB connection
 
-## Environment Variables
-
-Create a .env file:
-
-```bash
-PORT=1205
-MONGO_URI=mongodb://127.0.0.1:27017/backend_newsletter_subscription_api
-JWT_SECRET=your_secret_key
-NODE_ENV=development
-```
-
-## Install
+## Setup
 
 ```bash
 npm install
+copy .env.example .env
 ```
+
+Set a real MongoDB URI and a random `JWT_SECRET` with at least 32 characters in `.env`.
 
 ## Run
 
@@ -48,28 +34,59 @@ npm install
 npm run dev
 ```
 
-## API Endpoints
+The default port is `1198`.
 
-### Auth
+## Test
 
-- POST /api/auth/register
-- POST /api/auth/login
-- POST /api/auth/logout
+Tests run in-process and do not start a server:
 
-### Newsletter
+```bash
+npm test
+```
 
-- POST /api/newsletter/subscribe
-- POST /api/newsletter/unsubscribe
-- GET /api/newsletter/subscribers
+## Environment variables
 
-### Subscriber Fields
+| Variable | Required | Description |
+| --- | --- | --- |
+| `PORT` | No | Server port, defaults to `1198` |
+| `MONGO_URI` | Yes | MongoDB connection string |
+| `JWT_SECRET` | Yes | Random secret, minimum 32 characters |
+| `NODE_ENV` | No | Use `production` to enable Secure cookies |
+| `CLIENT_ORIGINS` | No | Comma-separated trusted frontend origins |
+| `COOKIE_SAME_SITE` | No | Cookie policy, defaults to `lax` |
 
-- email
-- subscribed
+## API endpoints
 
-## Notes
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/` | Public | API status |
+| GET | `/health` | Public | Health response |
+| POST | `/api/auth/register` | Public | Register an admin and set cookie |
+| POST | `/api/auth/login` | Public | Login and set cookie |
+| POST | `/api/auth/logout` | Public | Clear auth cookie |
+| POST | `/api/newsletter/subscribe` | Public | Subscribe an email |
+| POST | `/api/newsletter/unsubscribe` | Public | Mark an email unsubscribed |
+| GET | `/api/newsletter/subscribers` | Admin cookie | List active subscribers |
 
-- Anyone can subscribe or unsubscribe
-- Only admin can list subscribers
-- Authentication via HttpOnly cookies
-- Use withCredentials: true in frontend
+All JSON responses include `apiUrl` as the first field. Browser clients must use `credentials: "include"` for cookie-based requests.
+
+Detailed request flow and security notes are in [Documentation.md](./Documentation.md). Ready-to-use requests are in [rest.http](./rest.http).
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
+
+## Author
+
+Ashish Ranjan, Full-Stack Web Developer
+
+- Website: https://ashishranjan.in/
+- GitHub: https://github.com/a2rp
+- LinkedIn: https://www.linkedin.com/in/aashishranjan
+- Email: mailto:ash.ranjan09@gmail.com
+
+## Support
+
+- Support page: https://a2rp-donation-page.netlify.app/
+- Buy Me a Coffee: https://buymeacoffee.com/a2rp
+- Patreon: https://www.patreon.com/a2rp
