@@ -1,8 +1,18 @@
+const { createHmac, timingSafeEqual } = require("node:crypto");
 const Subscriber = require("../models/subscriber.model");
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const normalizeEmail = (email) => (typeof email === "string" ? email.trim().toLowerCase() : "");
-const validateEmail = (email) => email && emailPattern.test(email);
+const validateEmail = (email) => email.length <= 254 && emailPattern.test(email);
+const isValidUnsubscribeToken = (email, token) => {
+    if (typeof token !== "string" || !/^[a-f\d]{64}$/i.test(token) || !process.env.UNSUBSCRIBE_SECRET) {
+        return false;
+    }
+
+    const expected = createHmac("sha256", process.env.UNSUBSCRIBE_SECRET).update(email).digest();
+    const provided = Buffer.from(token, "hex");
+    return provided.length === expected.length && timingSafeEqual(provided, expected);
+};
 const publicSubscriber = (subscriber) => ({
     _id: subscriber._id,
     email: subscriber.email,
@@ -13,7 +23,7 @@ const publicSubscriber = (subscriber) => ({
 
 const subscribe = async (req, res) => {
     try {
-        const email = normalizeEmail(req.body.email);
+        const email = normalizeEmail((req.body || {}).email);
         if (!validateEmail(email)) return res.status(422).json({ message: "A valid email is required" });
         const subscriber = await Subscriber.findOneAndUpdate(
             { email },
@@ -30,11 +40,14 @@ const subscribe = async (req, res) => {
 
 const unsubscribe = async (req, res) => {
     try {
-        const email = normalizeEmail(req.body.email);
+        const { email: rawEmail, token } = req.body || {};
+        const email = normalizeEmail(rawEmail);
         if (!validateEmail(email)) return res.status(422).json({ message: "A valid email is required" });
-        const subscriber = await Subscriber.findOneAndUpdate({ email }, { $set: { subscribed: false } }, { new: true });
-        if (!subscriber) return res.status(404).json({ message: "Subscriber not found" });
-        return res.status(200).json({ message: "Unsubscribed successfully" });
+        if (!isValidUnsubscribeToken(email, token)) {
+            return res.status(403).json({ message: "A valid unsubscribe token is required" });
+        }
+        await Subscriber.findOneAndUpdate({ email }, { $set: { subscribed: false } });
+        return res.status(200).json({ message: "If this address was subscribed, it has been removed" });
     } catch (error) {
         console.error("Unsubscribe failed:", error.message);
         return res.status(500).json({ message: "Unsubscribe failed" });

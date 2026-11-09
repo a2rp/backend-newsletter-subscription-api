@@ -1,7 +1,7 @@
 {
     "name": "backend-newsletter-subscription-api",
     "version": "1.0.0",
-    "description": "Secure newsletter subscription API with admin authentication",
+    "description": "Express 5 and MongoDB newsletter API with admin auth, subscriber management, and signed unsubscribe links",
     "main": "src/index.js",
     "scripts": {
         "dev": "nodemon src/index.js",
@@ -14,11 +14,21 @@
         "mongodb",
         "newsletter",
         "subscription",
-        "backend-api"
+        "backend-api",
+        "admin-api",
+        "bcryptjs",
+        "express-5",
+        "http-only-cookie",
+        "rate-limiting",
+        "signed-unsubscribe",
+        "subscriber-management"
     ],
     "author": "Ashish Ranjan",
     "license": "MIT",
     "type": "commonjs",
+    "engines": {
+        "node": ">=20.19.0"
+    },
     "dependencies": {
         "bcryptjs": "^3.0.3",
         "cookie-parser": "^1.4.7",

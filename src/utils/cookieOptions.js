@@ -1,7 +1,7 @@
 const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.COOKIE_SAME_SITE || "lax",
+    sameSite: (process.env.COOKIE_SAME_SITE || "lax").toLowerCase(),
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
 };

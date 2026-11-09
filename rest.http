@@ -9,11 +9,12 @@ GET {{baseUrl}}/health
 ### Register admin
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
+x-admin-registration-secret: {{$dotenv ADMIN_REGISTRATION_SECRET}}
 
 {
   "name": "Admin User",
   "email": "admin@example.com",
-  "password": "password123"
+  "password": "ReplaceThisWithYourOwnPassphrase2026!"
 }
 
 ### Login admin
@@ -22,7 +23,7 @@ Content-Type: application/json
 
 {
   "email": "admin@example.com",
-  "password": "password123"
+  "password": "ReplaceThisWithYourOwnPassphrase2026!"
 }
 
 ### Subscribe
@@ -38,7 +39,8 @@ POST {{baseUrl}}/api/newsletter/unsubscribe
 Content-Type: application/json
 
 {
-  "email": "subscriber@example.com"
+  "email": "subscriber@example.com",
+  "token": "REPLACE_WITH_SIGNED_EMAIL_TOKEN"
 }
 
 ### Active subscribers (admin cookie required)

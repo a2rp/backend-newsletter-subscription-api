@@ -4,8 +4,8 @@ Secure newsletter subscription API built with Node.js, Express, MongoDB, JWT, an
 
 ## Features
 
-- Public subscribe and unsubscribe endpoints
-- Admin registration, login, and logout
+- Public subscribe and signed unsubscribe endpoints
+- One-time admin registration, login, and logout
 - Admin-only active subscriber listing
 - Hashed admin passwords with bcrypt
 - Seven-day JWT authentication in an HttpOnly cookie
@@ -16,7 +16,7 @@ Secure newsletter subscription API built with Node.js, Express, MongoDB, JWT, an
 
 ## Requirements
 
-- Node.js 18 or newer
+- Node.js 20.19 or newer
 - MongoDB running locally or a hosted MongoDB connection
 
 ## Setup
@@ -26,7 +26,7 @@ npm install
 copy .env.example .env
 ```
 
-Set a real MongoDB URI and a random `JWT_SECRET` with at least 32 characters in `.env`.
+Set a real MongoDB URI and replace each example secret with a different random value of at least 32 characters. Production requires all three secrets plus `CLIENT_ORIGINS`. The first admin registration also requires the `x-admin-registration-secret` header; registration closes after that account is created.
 
 ## Run
 
@@ -50,7 +50,9 @@ npm test
 | --- | --- | --- |
 | `PORT` | No | Server port, defaults to `1198` |
 | `MONGO_URI` | Yes | MongoDB connection string |
-| `JWT_SECRET` | Yes | Random secret, minimum 32 characters |
+| `JWT_SECRET` | Yes | Unique random JWT signing secret, minimum 32 characters |
+| `ADMIN_REGISTRATION_SECRET` | Production | Separate secret used to create the initial admin |
+| `UNSUBSCRIBE_SECRET` | Production | Separate secret used by the trusted mail sender to sign unsubscribe links |
 | `NODE_ENV` | No | Use `production` to enable Secure cookies |
 | `CLIENT_ORIGINS` | No | Comma-separated trusted frontend origins |
 | `COOKIE_SAME_SITE` | No | Cookie policy, defaults to `lax` |
@@ -61,14 +63,28 @@ npm test
 | --- | --- | --- | --- |
 | GET | `/` | Public | API status |
 | GET | `/health` | Public | Health response |
-| POST | `/api/auth/register` | Public | Register an admin and set cookie |
+| POST | `/api/auth/register` | Setup secret | Create the initial admin and set cookie |
 | POST | `/api/auth/login` | Public | Login and set cookie |
 | POST | `/api/auth/logout` | Public | Clear auth cookie |
 | POST | `/api/newsletter/subscribe` | Public | Subscribe an email |
-| POST | `/api/newsletter/unsubscribe` | Public | Mark an email unsubscribed |
+| POST | `/api/newsletter/unsubscribe` | Signed token | Unsubscribe the address associated with the token |
 | GET | `/api/newsletter/subscribers` | Admin cookie | List active subscribers |
 
 All JSON responses include `apiUrl` as the first field. Browser clients must use `credentials: "include"` for cookie-based requests.
+
+Admin passwords must contain at least 8 characters and no more than 72 UTF-8 bytes. They are hashed with bcrypt. Auth and newsletter routes use per-process in-memory rate limits; use a shared limiter store when deploying multiple server instances.
+
+The unsubscribe token is an HMAC-SHA256 hex digest of the normalized email, signed with `UNSUBSCRIBE_SECRET`. Generate it only in a trusted server-side mail sender, never in browser code:
+
+```js
+const { createHmac } = require("node:crypto");
+
+const token = createHmac("sha256", process.env.UNSUBSCRIBE_SECRET)
+  .update(email.trim().toLowerCase())
+  .digest("hex");
+```
+
+The API does not send subscription emails or perform double opt-in; it marks addresses active immediately. Integrate a confirmation flow before sending campaigns. A mail sender must include the signed token in its unsubscribe link. Keep `UNSUBSCRIBE_SECRET` stable while mailed links need to work, since rotation invalidates old links. The endpoint returns the same success response whether or not the address exists, avoiding subscriber enumeration.
 
 
 ## License
@@ -89,19 +105,3 @@ Ashish Ranjan, Full-Stack Web Developer
 - Support page: https://a2rp-donation-page.netlify.app/
 - Buy Me a Coffee: https://buymeacoffee.com/a2rp
 - Patreon: https://www.patreon.com/a2rp
-
-## Links
-
-- Portfolio: [https://www.ashishranjan.net](https://www.ashishranjan.net)
-- GitHub: [https://github.com/a2rp](https://github.com/a2rp)
-- CodePen: [https://codepen.io/ash1198](https://codepen.io/ash1198)
-- LinkedIn: [https://www.linkedin.com/in/aashishranjan](https://www.linkedin.com/in/aashishranjan)
-- Facebook: [https://www.facebook.com/theash.ashish/](https://www.facebook.com/theash.ashish/)
-- YouTube: [https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1](https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1)
-- Email: [ash.ranjan09@gmail.com](mailto:ash.ranjan09@gmail.com)
-
-## Support
-
-- Support: [https://a2rp-donation-page.netlify.app/](https://a2rp-donation-page.netlify.app/)
-- Buy Me A Coffee: [https://buymeacoffee.com/a2rp](https://buymeacoffee.com/a2rp)
-- Patreon: [https://patreon.com/a2rp](https://patreon.com/a2rp)
