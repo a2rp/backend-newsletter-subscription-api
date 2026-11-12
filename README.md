@@ -26,7 +26,7 @@ npm install
 copy .env.example .env
 ```
 
-Set a real MongoDB URI and replace each example secret with a different random value of at least 32 characters. Production requires all three secrets plus `CLIENT_ORIGINS`. The first admin registration also requires the `x-admin-registration-secret` header; registration closes after that account is created.
+Set a real MongoDB URI and replace each example secret with a different random value of at least 32 characters. `MONGO_URI`, `JWT_SECRET`, and `ADMIN_REGISTRATION_SECRET` are required in every environment. Production also requires `UNSUBSCRIBE_SECRET` and `CLIENT_ORIGINS`. The first admin registration requires the `x-admin-registration-secret` header; registration closes after that account is created.
 
 ## Run
 
@@ -51,7 +51,7 @@ npm test
 | `PORT` | No | Server port, defaults to `1198` |
 | `MONGO_URI` | Yes | MongoDB connection string |
 | `JWT_SECRET` | Yes | Unique random JWT signing secret, minimum 32 characters |
-| `ADMIN_REGISTRATION_SECRET` | Production | Separate secret used to create the initial admin |
+| `ADMIN_REGISTRATION_SECRET` | Yes | Separate secret required to create the initial admin |
 | `UNSUBSCRIBE_SECRET` | Production | Separate secret used by the trusted mail sender to sign unsubscribe links |
 | `NODE_ENV` | No | Use `production` to enable Secure cookies |
 | `CLIENT_ORIGINS` | No | Comma-separated trusted frontend origins |
@@ -84,7 +84,7 @@ const token = createHmac("sha256", process.env.UNSUBSCRIBE_SECRET)
   .digest("hex");
 ```
 
-The API does not send subscription emails or perform double opt-in; it marks addresses active immediately. Integrate a confirmation flow before sending campaigns. A mail sender must include the signed token in its unsubscribe link. Keep `UNSUBSCRIBE_SECRET` stable while mailed links need to work, since rotation invalidates old links. The endpoint returns the same success response whether or not the address exists, avoiding subscriber enumeration.
+The API does not send subscription emails or perform double opt-in; it marks addresses active immediately. Public subscribe responses contain no subscriber details. Integrate a confirmation flow before sending campaigns. A mail sender must include the signed token in its unsubscribe link. Keep `UNSUBSCRIBE_SECRET` stable while mailed links need to work, since rotation invalidates old links. The unsubscribe endpoint returns the same success response whether or not the address exists, avoiding subscriber enumeration.
 
 
 ## License

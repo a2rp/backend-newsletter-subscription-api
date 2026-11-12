@@ -6,7 +6,7 @@ dotenv.config();
 const app = require("./app");
 
 const validateEnvironment = () => {
-    const missing = ["MONGO_URI", "JWT_SECRET"].filter((key) => !process.env[key]);
+    const missing = ["MONGO_URI", "JWT_SECRET", "ADMIN_REGISTRATION_SECRET"].filter((key) => !process.env[key]);
     if (missing.length) throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
     if (process.env.JWT_SECRET.trim().length < 32) throw new Error("JWT_SECRET must contain at least 32 characters");
     if (/^(replace_with|change_me|your[_-])/i.test(process.env.JWT_SECRET.trim())) {

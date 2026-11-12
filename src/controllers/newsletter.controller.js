@@ -25,14 +25,14 @@ const subscribe = async (req, res) => {
     try {
         const email = normalizeEmail((req.body || {}).email);
         if (!validateEmail(email)) return res.status(422).json({ message: "A valid email is required" });
-        const subscriber = await Subscriber.findOneAndUpdate(
+        await Subscriber.findOneAndUpdate(
             { email },
             { $set: { email, subscribed: true } },
             { new: true, upsert: true, setDefaultsOnInsert: true },
         );
-        return res.status(200).json({ message: "Subscribed successfully", subscriber: publicSubscriber(subscriber) });
+        return res.status(200).json({ message: "Subscription request received" });
     } catch (error) {
-        if (error.code === 11000) return res.status(409).json({ message: "Email is already subscribed" });
+        if (error.code === 11000) return res.status(200).json({ message: "Subscription request received" });
         console.error("Subscription failed:", error.message);
         return res.status(500).json({ message: "Subscription failed" });
     }

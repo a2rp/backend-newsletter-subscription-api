@@ -26,7 +26,7 @@ const registerAdmin = async (req, res) => {
         const { name, email, password } = req.body || {};
         const validationError = validate({ name, email, password }, true);
         if (validationError) return res.status(422).json({ message: validationError });
-        if (process.env.ADMIN_REGISTRATION_SECRET && req.get("x-admin-registration-secret") !== process.env.ADMIN_REGISTRATION_SECRET) {
+        if (!process.env.ADMIN_REGISTRATION_SECRET || req.get("x-admin-registration-secret") !== process.env.ADMIN_REGISTRATION_SECRET) {
             return res.status(403).json({ message: "Admin registration is not permitted" });
         }
         if (await Admin.exists({})) {
